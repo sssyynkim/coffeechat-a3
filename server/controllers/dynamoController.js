@@ -8,21 +8,26 @@ const {
 } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
 const { getPreSignedUrlWithUser, uploadFileToS3 } = require("./s3Controller"); // Assuming you have this controller for S3 uploads
-const { getSecretValue } = require('../config/secretsManager'); // Correctly import the function
+const { getParameterValue } = require("../config/secretsManager"); // Correctly import the function
 // const tableName = process.env.DYNAMO_TABLE_NAME;
 // const qutUsername = process.env.QUT_USERNAME; // Fixed partition key
 
 // DynamoDB Client setup and conversion to DocumentClient
 async function createDynamoDBClient() {
-  const secret = await getSecretValue('n11725605-assignment2-latest'); // Fetch credentials from Secrets Manager
+  const region = await getParameterValue("/n11725605/prac-region");
+  const accessKeyId = await getParameterValue("/n11725605/prac-accessKeyId");
+  const secretAccessKey = await getParameterValue(
+    "/n11725605/prac-secretAccessKey"
+  );
+  const sessionToken = await getParameterValue("/n11725605/prac-sessionToken");
 
   const client = new DynamoDBClient({
-    region: secret.region,
+    region,
     credentials: {
-      accessKeyId: secret.accessKeyId,
-      secretAccessKey: secret.secretAccessKey,
-      sessionToken: secret.sessionToken
-    }
+      accessKeyId,
+      secretAccessKey,
+      sessionToken: sessionToken || "", // Optional session token
+    },
   });
 
   return DynamoDBDocumentClient.from(client); // Return DocumentClient

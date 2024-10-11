@@ -1,4 +1,3 @@
-
 const {
   S3Client,
   PutObjectCommand,
@@ -7,24 +6,30 @@ const {
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { fromSSO } = require("@aws-sdk/credential-provider-sso"); // Use SSO credentials for AWS
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
-const { getParameterValue, getSecretValue } = require('../config/secretsManager'); // Use SecretsManager for credentials
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+const { getParameterValue } = require("../config/secretsManager"); // Use SecretsManager for credentials
 
+const getS3Credentials = async () => {
+  const accessKeyId = await getParameterValue("/n11725605/prac-accessKeyId");
+  const secretAccessKey = await getParameterValue(
+    "/n11725605/prac-secretAccessKey"
+  );
+  const sessionToken = await getParameterValue("/n11725605/prac-sessionToken");
+  const region = await getParameterValue("/n11725605/AWS_REGION");
+
+  return { accessKeyId, secretAccessKey, sessionToken, region };
+};
 
 // Function to generate a pre-signed URL for file upload with user ID included
 const getPreSignedUrlWithUser = async (fileName, userId) => {
   // Fetch AWS_BUCKET_NAME and AWS_REGION from Parameter Store
-  const bucketName = await getParameterValue('/n11725605/AWS_BUCKET_NAME');
-  const region = await getParameterValue('/n11725605/AWS_REGION');
-  const secret = await getSecretValue('n11725605-assignment2-latest'); // Ensure this secret holds access keys
-
+  const { accessKeyId, secretAccessKey, sessionToken, region } =
+    await getS3Credentials();
+  const bucketName = await getParameterValue("/n11725605/AWS_BUCKET_NAME");
   const s3Client = new S3Client({
     region,
-    credentials: {
-      accessKeyId: secret.accessKeyId,
-      secretAccessKey: secret.secretAccessKey,
-      sessionToken: secret.sessionToken
-    },
+    credentials: { accessKeyId, secretAccessKey, sessionToken },
   });
 
   const key = `${userId}/${fileName}`; // Use user ID as part of the file key
@@ -47,7 +52,6 @@ const getPreSignedUrlWithUser = async (fileName, userId) => {
     throw err;
   }
 };
-
 
 // Upload the file to S3 using a pre-signed URL
 const uploadFileToS3 = async (fileBuffer, preSignedUrl, contentType) => {
@@ -77,16 +81,12 @@ const uploadFileToS3 = async (fileBuffer, preSignedUrl, contentType) => {
 // Function to generate a pre-signed URL for reading a file from S3
 const getPreSignedReadUrl = async (fileName) => {
   // Fetch AWS_BUCKET_NAME and AWS_REGION from Parameter Store
-  const bucketName = await getParameterValue('/n11725605/AWS_BUCKET_NAME');
-  const region = await getParameterValue('/n11725605/AWS_REGION');
-
+  const { accessKeyId, secretAccessKey, sessionToken, region } =
+    await getS3Credentials();
+  const bucketName = await getParameterValue("/n11725605/AWS_BUCKET_NAME");
   const s3Client = new S3Client({
     region,
-    credentials: {
-      accessKeyId: secret.accessKeyId,
-      secretAccessKey: secret.secretAccessKey,
-      sessionToken: secret.sessionToken
-    }
+    credentials: { accessKeyId, secretAccessKey, sessionToken },
   });
 
   const command = new GetObjectCommand({
@@ -105,28 +105,20 @@ const getPreSignedReadUrl = async (fileName) => {
   }
 };
 
-
 // Delete an image from S3
 const deleteImageFromS3 = async (fileKey) => {
   // Fetch AWS_BUCKET_NAME and AWS_REGION from Parameter Store
-  const bucketName = await getParameterValue('/n11725605/AWS_BUCKET_NAME');
-  const region = await getParameterValue('/n11725605/AWS_REGION');
-  // Fetch AWS credentials from Secrets Manager
-  const secret = await getSecretValue('n11725605-assignment2-latest');
-
-
+  const { accessKeyId, secretAccessKey, sessionToken, region } =
+    await getS3Credentials();
+  const bucketName = await getParameterValue("/n11725605/AWS_BUCKET_NAME");
   const s3Client = new S3Client({
     region,
-    credentials: {
-      accessKeyId: secret.accessKeyId,
-      secretAccessKey: secret.secretAccessKey,
-      sessionToken: secret.sessionToken
-    }
+    credentials: { accessKeyId, secretAccessKey, sessionToken },
   });
 
   const params = {
-    Bucket: bucketName, 
-    Key: fileKey, 
+    Bucket: bucketName,
+    Key: fileKey,
   };
 
   try {
