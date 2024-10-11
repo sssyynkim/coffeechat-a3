@@ -1,4 +1,3 @@
-
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
@@ -8,18 +7,17 @@ const {
   getPreSignedUrlWithUser,
   uploadFileToS3,
   getPreSignedReadUrl,
-} = require("../controllers/s3Controller.js"); // Import S3 functions correctly
-const { upload } = require("../middleware/fileUpload"); // Import multer configuration
+} = require("../controllers/s3Controller.js");
+const { upload } = require("../middleware/fileUpload");
 const { ObjectId } = require("mongodb");
 const path = require("path");
 const { deletePostFromDynamo } = require("../controllers/dynamoController");
 const { deleteImageFromS3 } = require("../controllers/s3Controller");
 const { getParameterValue } = require("../config/secretsManager");
 
-// Import the required AWS SDK modules for DynamoDB
-const { createDynamoDBClient } = require("../controllers/dynamoController"); // Import the function correctly
+const { createDynamoDBClient } = require("../controllers/dynamoController");
 const { PutCommand } = require("@aws-sdk/lib-dynamodb");
-const { v4: uuidv4 } = require("uuid"); // Import the uuidv4 function
+const { v4: uuidv4 } = require("uuid");
 
 // Route to render the write post page
 router.get("/write", ensureAuthenticated, (req, res) => {
@@ -41,9 +39,9 @@ router.post(
       }
 
       // Retrieve bucket name and region from Parameter Store
-      const qutUsername = await getParameterValue('/n11725605/QUT_USERNAME');
-      const bucketName = await getParameterValue('/n11725605/AWS_BUCKET_NAME');
-      const region = await getParameterValue('/n11725605/AWS_REGION');
+      const qutUsername = await getParameterValue("/n11725605/QUT_USERNAME");
+      const bucketName = await getParameterValue("/n11725605/AWS_BUCKET_NAME");
+      const region = await getParameterValue("/n11725605/AWS_REGION");
 
       // Generate a unique file name and postId
       const userId = req.user.sub || req.user.email; // Cognito user ID or email
@@ -91,7 +89,7 @@ router.post(
       const docClient = await createDynamoDBClient();
       await docClient.send(
         new PutCommand({
-          TableName: await getParameterValue('/n11725605/DYNAMO_TABLE_NAME'), // DynamoDB table from Parameter Store
+          TableName: await getParameterValue("/n11725605/DYNAMO_TABLE_NAME"), // DynamoDB table from Parameter Store
           Item: dynamoPostData,
         })
       );
@@ -134,11 +132,43 @@ router.get("/list", ensureAuthenticated, async (req, res) => {
       ])
       .toArray();
 
-    // Render posts along with user information
     res.render("list", { posts, user: req.user });
   } catch (err) {
     console.error("Failed to fetch posts:", err);
     res.status(500).send("Failed to fetch posts");
+  }
+});
+
+// Route to get details of a specific post by postId
+router.get("/detail/:postId", ensureAuthenticated, async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    // Validate the ObjectId
+    if (!ObjectId.isValid(postId)) {
+      return res.status(400).send("Invalid post ID");
+    }
+
+    // Fetch the post from MongoDB
+    const post = await getDB()
+      .collection("post")
+      .findOne({ _id: new ObjectId(postId) });
+
+    if (!post) {
+      return res.status(404).send("Post not found");
+    }
+
+    // Fetch the related comments from MongoDB
+    const comments = await getDB()
+      .collection("comment")
+      .find({ parentId: new ObjectId(postId) })
+      .toArray();
+
+    // Render the detail view with the post and comments
+    res.render("detail", { result: post, result2: comments, user: req.user });
+  } catch (err) {
+    console.error("Failed to fetch post details:", err);
+    res.status(500).send("Error fetching post details");
   }
 });
 
@@ -147,7 +177,6 @@ router.get("/edit/:id", ensureAuthenticated, async (req, res) => {
   try {
     const postId = req.params.id;
 
-    // Validate the ObjectId
     if (!ObjectId.isValid(postId)) {
       return res.status(400).send("Invalid post ID");
     }
@@ -181,18 +210,19 @@ router.post(
         updatedAt: new Date(),
       };
 
-      // Validate the ObjectId
       if (!ObjectId.isValid(postId)) {
         return res.status(400).send("Invalid post ID");
       }
 
-      // If a new image is uploaded, update the image URL and pre-signed URL
       if (req.file) {
-        const userId = req.user.sub || req.user.email; // User info
-        const fileName = Date.now() + path.extname(req.file.originalname); // New file name
-        const preSignedUrl = await getPreSignedUrlWithUser(fileName, userId); // Pre-signed URL with user info
+        const userId = req.user.sub || req.user.email;
+        const fileName = Date.now() + path.extname(req.file.originalname);
+        const bucketName = await getParameterValue(
+          "/n11725605/AWS_BUCKET_NAME"
+        );
+        const region = await getParameterValue("/n11725605/AWS_REGION");
+        const preSignedUrl = await getPreSignedUrlWithUser(fileName, userId);
 
-        // Update image URL
         updateData.imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${userId}/${fileName}`;
         updateData.preSignedUrl = preSignedUrl;
       }
@@ -212,9 +242,13 @@ router.post(
 // Route to handle deleting a specific post by ID
 router.delete("/delete/:postId", ensureAuthenticated, async (req, res) => {
   const { postId } = req.params;
-  const userId = req.user.sub || req.user.email; // Cognito user ID or email
+  const userId = req.user.sub || req.user.email;
 
   try {
+    const qutUsername = await getParameterValue("/n11725605/QUT_USERNAME");
+    console.log("Deleting post with postId:", postId);
+    console.log("Using qutUsername:", qutUsername);
+
     const post = await getDB()
       .collection("post")
       .findOne({ _id: new ObjectId(postId) });
@@ -223,20 +257,16 @@ router.delete("/delete/:postId", ensureAuthenticated, async (req, res) => {
       return res.status(404).send("Post not found");
     }
 
-    // Check if the current user is the author of the post
     if (post.user !== userId) {
       return res.status(403).send("You are not authorized to delete this post");
     }
 
-    // Delete the post from MongoDB
     await getDB()
       .collection("post")
       .deleteOne({ _id: new ObjectId(postId) });
 
-    // Delete the post from DynamoDB
     await deletePostFromDynamo(postId, qutUsername);
 
-    // Delete the associated image from S3 (if exists)
     if (post.imageUrl) {
       const fileKey = post.imageUrl.split(".amazonaws.com/")[1];
       await deleteImageFromS3(fileKey);

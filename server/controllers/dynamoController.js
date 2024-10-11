@@ -9,8 +9,6 @@ const {
 const { v4: uuidv4 } = require("uuid");
 const { getPreSignedUrlWithUser, uploadFileToS3 } = require("./s3Controller"); // Assuming you have this controller for S3 uploads
 const { getParameterValue } = require("../config/secretsManager"); // Correctly import the function
-// const tableName = process.env.DYNAMO_TABLE_NAME;
-// const qutUsername = process.env.QUT_USERNAME; // Fixed partition key
 
 // DynamoDB Client setup and conversion to DocumentClient
 async function createDynamoDBClient() {
