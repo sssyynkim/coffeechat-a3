@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatroom Details</title>
+<link rel="stylesheet" href="/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.2/client-dist/socket.io.min.js"></script>
+</head>
+
+<body>
+    <%- include('nav.ejs') %>
+
+        <h4>Chatroom for Post: <%= chatroom.postTitle %>
+        </h4>
+
+        <div class="chatroom-details">
+            <p>Members:</p>
+            <ul>
+                <% memberUsernames.forEach(username=> { %>
+                    <li>
+                        <%= username %>
+                    </li>
+                    <% }) %>
+            </ul>
+        </div>
+
+        <!-- Chat messages placeholder -->
+        <div id="chat-messages"></div>
+
+        <!-- Message form -->
+        <form id="chat-form">
+            <input type="hidden" id="chatroomId" value="<%= chatroom._id %>">
+            <textarea id="message" placeholder="Write a message..." required></textarea>
+            <button type="submit">Send</button>
+        </form>
+
+        <script>
+            const socket = io();
+            socket.emit('ask-join', '<%= chatroom._id %>');
+
+            socket.on('newMessage', (data) => {
+                const chatMessages = document.getElementById('chat-messages');
+                if (chatMessages) {
+                    const newMessage = document.createElement('div');
+                    newMessage.textContent = `${data.username} (${new Date(data.timestamp).toLocaleString()}): ${data.msg}`;
+                    chatMessages.appendChild(newMessage);
+                }
+            });
+
+            document.getElementById('chat-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const chatroomId = document.getElementById('chatroomId').value;
+                const message = document.getElementById('message').value;
+
+                socket.emit('message-send', { msg: message, room: chatroomId, username: '<%= user.username %>' });
+                document.getElementById('message').value = '';
+            });
+        </script>
+</body>
+
+</html>

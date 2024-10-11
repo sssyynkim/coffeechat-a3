@@ -1,0 +1,704 @@
+/* Global Variables */
+:root {
+    --primary-color: #ececec;
+    --secondary-color: #535353;
+    --background-color: #f5f5f5;
+    --accent-color: #383838;
+    --text-color: #34495e;
+    --grey-text-color: #606060;
+    --border-color: #dcdcdc;
+    --hover-color: #d1d1d1;
+    --danger-color: #ff6b6b;
+    --danger-hover-color: #ff4d4d;
+    --light-text-color: #ffffff;
+    --transition-speed: 0.3s;
+}
+
+/* Reset and Base Styles */
+* {
+    margin-top: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden;
+    padding: 0;
+}
+
+/* Navigation Bar */
+nav {
+    background-color: var(--primary-color);
+    width: 100%;
+    height: 60px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 0 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+nav ul li {
+    margin-left: 30px;
+    text-align: center;
+    transition: transform var(--transition-speed) ease;
+}
+
+nav ul li:first-child {
+    margin-left: 0;
+    /* Remove left margin for the first item */
+}
+
+nav ul li:hover {
+    transform: scale(1.05);
+}
+
+nav ul li a {
+    color: var(--accent-color);
+    text-decoration: none;
+    padding: 15px 0;
+    display: block;
+    font-size: 1.1rem;
+    transition: color var(--transition-speed) ease;
+}
+
+nav ul li a:hover {
+    color: var(--text-color);
+}
+
+/* Main Content */
+main {
+    padding: 80px 40px 40px;
+    transition: padding var(--transition-speed) ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav ul li {
+        margin: 10px 0;
+    }
+
+    main {
+        padding: 100px 20px 20px;
+    }
+}
+
+/* Cards */
+.post-grids {
+    padding: 20px;
+    margin-bottom: 10px;
+}
+.posts-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    
+}
+
+/* Post card styling */
+.post-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f3f1f1;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    justify-content: space-between;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.post-title {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+    transition: color var(--transition-speed) ease;
+    text-decoration: none;
+}
+
+.post-title:hover {
+    color: var(--text-color);
+}
+
+.post-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    transition: transform var(--transition-speed) ease;
+}
+
+.post-image:hover {
+    transform: scale(1.05);
+}
+
+.post-content {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.post-date {
+    font-size: 0.9rem;
+    color: var(--accent-color);
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.edit-btn,
+.delete-btn {
+    font-weight: bold;
+    background-color: var(--secondary-color);
+}
+
+
+
+/* Form Styles */
+.form-container,
+.comments {
+    background-color: var(--background-color);
+    padding: 30px;
+    margin-top: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: box-shadow var(--transition-speed) ease;
+    margin-bottom: 40px;
+    width: calc(100% - 80px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.form-container:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    color: var(--accent-color);
+    background-color: var(--background-color);
+    transition: border-color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+/* Button Styles */
+.btn,
+.chat-link,
+.button {
+    background-color: var(--secondary-color);
+    color: var(--light-text-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 10px 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.button {
+    background-color: var(--secondary-color);
+    color: var(--light-text-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 10px 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.button:hover,
+.btn:hover,
+.chat-link:hover {
+    background-color: var(--hover-color);
+    transform: scale(1.05);
+}
+
+
+.delete-btn {
+    background-color: var(--danger-color);
+}
+
+.delete-btn:hover {
+    background-color: var(--danger-hover-color);
+}
+
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.detail-bg {
+    padding:20px;
+    margin-left:20px;
+}
+
+.submit-btn {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin-top: 20px;
+}
+
+/* Hover Effect */
+.submit-btn:hover {
+    background-color: var(--hover-color);
+    transform: scale(1.05);
+}
+
+/* Focus Effect */
+.submit-btn:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--hover-color);
+}
+
+/* Disabled State */
+.submit-btn:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Progress Container */
+#progressContainer {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--border-color);
+    font-size: 1.1rem;
+}
+
+/* Progress Percentage Text */
+#progressContainer p {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: var(--grey-text-color);
+    animation: pulse 1s infinite;
+}
+
+/* Progress Bar */
+#progressBar {
+    width: 100%;
+    height: 25px;
+    border-radius: 12px;
+    background-color: var(--accent-color);
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    appearance: none;
+    position: relative;
+}
+
+/* Inner Progress Styling */
+#progressBar::-webkit-progress-bar {
+    background-color: var(--primary-color);
+}
+
+#progressBar::-webkit-progress-value {
+    background-color: var(--border-color);
+    border-radius: 12px 0 0 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
+}
+
+#progressBar::-moz-progress-bar {
+    background-color: var(--border-color);
+    border-radius: 12px 0 0 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
+}
+
+/* Pulse Animation for Percentage Text */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Progress Bar Label */
+#progressBarLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+/* Image Preview Styles */
+#filePreview,
+#gifPreview {
+    max-width: 100%;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: block;
+    object-fit: cover;
+}
+
+/* Container Styles */
+.file-upload-container
+.gif-creation-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.file-drag-area
+.gif-creation-container {
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    background-color: var(--background-light);
+    cursor: pointer;
+    width: 100%;
+}
+
+.file-drag-area p,
+.gif-creation-container {
+    margin: 0;
+}
+
+
+/* Update Button Styles */
+.update-btn {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin-top: 20px;
+}
+
+/* Hover Effect */
+.update-btn:hover {
+    background-color: var(--hover-color);
+    transform: scale(1.05);
+}
+
+/* Focus Effect */
+.update-btn:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--hover-color);
+}
+
+/* Disabled State */
+.update-btn:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/* Login Button Styles */
+.login-btn {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Hover Effect */
+.login-btn:hover {
+    background-color: var(--hover-color);
+    /* Change background on hover */
+    transform: scale(1.05);
+    /* Slightly enlarge button on hover */
+}
+
+/* Focus Effect */
+.login-btn:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--hover-color);
+}
+
+/* Disabled State */
+.login-btn:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/* Container for centering the chatroom content */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: var(--primary-color);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-speed) ease;
+}
+
+/* Chatroom Title */
+h4 {
+    font-size: 1.6rem;
+    color: var(--accent-color);
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 1.5px;
+}
+
+/* Chatroom List Box */
+.list-box {
+    background-color: var(--primary-color);
+    color: var(--light-text-color);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.list-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.list-box h4 {
+    font-size: 1.2rem;
+    color: var(--light-text-color);
+    margin-bottom: 8px;
+}
+
+.list-box a {
+    text-decoration: none;
+    color: var(--accent-color);
+    font-weight: bold;
+    transition: color var(--transition-speed) ease;
+}
+
+.list-box a:hover {
+    color: var(--text-color);
+}
+
+.list-box p {
+    font-size: 0.9rem;
+    color: var(--grey-text-color);
+}
+
+/* Chatroom Details */
+.chatroom-details {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chatroom-details ul {
+    list-style: none;
+    padding: 0;
+}
+
+.chatroom-details ul li {
+    font-size: 1rem;
+    background-color: var(--secondary-color);
+    color: var(--light-text-color);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: background-color var(--transition-speed) ease;
+}
+
+.chatroom-details ul li:hover {
+    background-color: var(--hover-color);
+}
+
+/* Chat Messages */
+#chat-messages {
+    background-color: var(--background-color);
+    padding: 15px;
+    border-radius: 10px;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+#chat-messages div {
+    background-color: var(--secondary-color);
+    color: var(--light-text-color);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: background-color var(--transition-speed) ease;
+}
+
+#chat-messages div:hover {
+    background-color: var(--hover-color);
+}
+
+/* Message Form */
+#chat-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    background-color: var(--primary-color);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#message {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: border-color var(--transition-speed) ease;
+}
+
+#message:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+#chat-form button {
+    background-color: var(--accent-color);
+    color: var(--light-text-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    width: 100%;
+    max-width: 150px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#chat-form button:hover {
+    background-color: var(--hover-color);
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    h4 {
+        font-size: 1.4rem;
+    }
+
+    #chat-messages {
+        max-height: 250px;
+    }
+}

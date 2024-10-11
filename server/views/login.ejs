@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/main.css">
+</head>
+
+<body>
+    <h1>Login</h1>
+
+    <!-- Flash messages for error or success -->
+    <% if (error_msg) { %>
+        <div class="alert alert-danger">
+            <%= error_msg %>
+        </div>
+        <% } %>
+
+            <% if (success_msg) { %>
+                <div class="alert alert-success">
+                    <%= success_msg %>
+                </div>
+                <% } %>
+
+                    <!-- Login Form -->
+                    <form action="/auth/login" method="POST">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required><br><br>
+
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required><br><br>
+
+                        <button type="submit" class="login-btn">Login</button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Google Login Button -->
+                    <div>
+                        <button onclick="loginWithGoogle()" class="google-login-btn">Login with Google</button>
+                    </div>
+
+                    <!-- Place the script here -->
+                    <script>
+                        function loginWithGoogle
+                        () {
+                            const clientId = '<%= clientId %>';  // Client ID from the server
+                            const redirectUri = '<%= redirectUri %>';  // Redirect URI from the server
+                            const cognitoDomain = '<%= cognitoDomain %>';  // Cognito domain from the server
+                            const state = '<%= state %>';  // State from the server
+
+                            const googleLoginUrl = `https://${cognitoDomain}/oauth2/authorize?identity_provider=Google&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=CODE&client_id=${clientId}&scope=email+openid+profile&state=${state}`;
+
+                            window.location.href = googleLoginUrl;
+                        }
+                    </script>
+
+
+
+</body>
+
+</html>

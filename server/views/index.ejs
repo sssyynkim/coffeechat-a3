@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="/main.css">
+</head>
+
+<body>
+        <%- include('nav.ejs') %>
+
+
+    <main>
+        <section class="welcome-section">
+            <h3>Your place to connect and share your thoughts.</h3>
+        </section>
+
+        <% if (user) { %>
+            <section class="user-info">
+                <h1>Welcome 👋 <%= user.username %>
+                </h1>
+            </section>
+
+            <section class="user-posts">
+                <h2>Your Posts</h2>
+                <% if (posts && posts.length> 0) { %>
+                    <div class="posts-grid">
+                        <% posts.forEach(post=> { %>
+                            <div class="post-card">
+                                <h3 class="post-title">
+                                    <%= post.title %>
+                                </h3>
+                                <p class="post-content">
+                                    <%= post.content %>
+                                </p>
+                                <% if (post.imageUrl) { %>
+                                    <img src="<%= post.imageUrl %>" alt="Post Image" class="post-image">
+                                    <% } %>
+                                        <p class="post-date">Posted on: <%= new Date(post.createdAt).toLocaleString() %>
+                                        </p>
+                            </div>
+                            <% }) %>
+                    </div>
+                    <% } else { %>
+                        <p>You haven't posted anything yet.</p>
+                        <% } %>
+            </section>
+            <% } else { %>
+                <section class="guest-message">
+                    <p>Please <a href="/login">log in</a> to see your posts.</p>
+                </section>
+                <% } %>
+    </main>
+</body>
+
+</html>

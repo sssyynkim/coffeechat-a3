@@ -1,0 +1,19 @@
+# Ignore node modules
+node_modules/
+
+# Ignore environment variables file
+.env
+
+# Ignore log files
+*.log
+
+# Ignore private key files
+*.pem
+
+# Ignore Docker-related files and directories (optional, only if you have some generated files)
+#docker/
+#*.dockerignore
+
+# Ignore temporary files
+*.tmp
+*.swp
