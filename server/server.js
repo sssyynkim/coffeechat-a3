@@ -2,6 +2,7 @@ const AWS = require("aws-sdk");
 const express = require("express");
 const path = require("path");
 const http = require("http");
+const WebSocket = require("ws");
 const cookieParser = require("cookie-parser");
 const { connectDB } = require("./config/db");
 const session = require("express-session");
@@ -10,7 +11,6 @@ const flash = require("connect-flash");
 const passport = require("./config/passport");
 const cors = require("cors");
 const { getDB } = require("./config/db");
-const configureSocketIO = require("./config/socketio");
 const ensureAuthenticated = require("./middleware/auth");
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -22,9 +22,27 @@ const { v4: uuidv4 } = require("uuid");
 const {
   CognitoIdentityProviderClient,
 } = require("@aws-sdk/client-cognito-identity-provider");
-const authRoutes = require("./routes/authRoutes");
 
 const app = express();
+const server = http.createServer(app);
+
+// WebSocket 서버 설정
+const wss = new WebSocket.Server({ server });
+
+wss.on("connection", (ws) => {
+  console.log("WebSocket connected");
+
+  ws.on("message", (message) => {
+    console.log("Received:", message);
+
+    // 클라이언트에게 다시 브로드캐스트 (에코)
+    ws.send(`Echo: ${message}`);
+  });
+
+  ws.on("close", () => {
+    console.log("WebSocket disconnected");
+  });
+});
 
 let cognitoClient; // Global declaration for Cognito
 
@@ -180,7 +198,7 @@ async function createDynamoDBClient() {
     // Middleware Setup
     app.use(
       cors({
-        origin: ["https://www.coffeechat.cab432.com"],
+        origin: ["http://localhost:8080"], //"https://www.coffeechat.cab432.com"
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
         credentials: true,
         optionsSuccessStatus: 204,
@@ -188,6 +206,10 @@ async function createDynamoDBClient() {
     );
 
     app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+    app.use(
+      "/node_modules",
+      express.static(path.join(__dirname, "node_modules"))
+    );
     app.use(express.static(path.join(__dirname, "public")));
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
@@ -216,6 +238,11 @@ async function createDynamoDBClient() {
       next();
     });
 
+    app.use((req, res, next) => {
+      res.locals.user = req.user || null; // 로그인된 사용자 정보가 있으면 `user`로 전달, 없으면 null
+      next();
+    });
+
     // Passport Setup
     app.use(passport.initialize());
     app.use(passport.session());
@@ -223,6 +250,8 @@ async function createDynamoDBClient() {
     // View Engine Setup
     app.set("view engine", "ejs");
     app.set("views", path.join(__dirname, "views"));
+
+    //configureSocketIO(io);
 
     // Routes for posts, comments, and chat
     const authRoutes = require("./routes/authRoutes");
@@ -319,8 +348,8 @@ async function createDynamoDBClient() {
     // Other routes and configurations...
 
     const PORT = await getParameterValue("/n11725605/PORT");
-    const server = http.createServer(app);
-    configureSocketIO(server);
+    // const server = http.createServer(app);
+    // configureSocketIO(server);
     server.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
