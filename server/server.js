@@ -26,7 +26,7 @@ const {
 const app = express();
 const server = http.createServer(app);
 
-// WebSocket 서버 설정
+// WebSocket 서버 설정 (파일 업로드와 채팅 모두 처리)
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
@@ -35,7 +35,24 @@ wss.on("connection", (ws) => {
   ws.on("message", (message) => {
     console.log("Received:", message);
 
-    // 클라이언트에게 다시 브로드캐스트 (에코)
+    // 메시지가 JSON 형식인지 확인하고 처리
+    try {
+      const parsedMessage = JSON.parse(message);
+
+      // 메시지에 따라 처리 분기
+      if (parsedMessage.action === "upload") {
+        console.log("Upload message received:", parsedMessage.data);
+        // 업로드 관련 처리
+      } else if (parsedMessage.action === "chat") {
+        console.log("Chat message received:", parsedMessage.data);
+        // 채팅 관련 처리
+      }
+    } catch (error) {
+      console.log("Received non-JSON message:", message);
+      // 메시지가 단순 문자열일 때 처리
+    }
+
+    // 에코 메시지
     ws.send(`Echo: ${message}`);
   });
 
@@ -76,30 +93,6 @@ async function initializeAWS() {
 
   console.log("AWS SDK initialized with credentials from Parameter Store.");
 }
-
-// WebSocket API 연결 처리 (HTTP 엔드포인트)
-app.post("/websocket-connect", (req, res) => {
-  console.log("Client connected:", req.body.connectionId);
-  // WebSocket 연결 정보를 DB에 저장하거나 처리
-  res.status(200).send({ message: "Connected" });
-});
-
-// WebSocket 연결 해제 처리 (HTTP 엔드포인트)
-app.post("/websocket-disconnect", (req, res) => {
-  console.log("Client disconnected:", req.body.connectionId);
-  // WebSocket 연결 해제 정보를 DB에서 제거하거나 처리
-  res.status(200).send({ message: "Disconnected" });
-});
-
-// WebSocket 메시지 처리 (HTTP 엔드포인트)
-app.post("/websocket-sendMessage", (req, res) => {
-  const { connectionId, message } = req.body;
-  console.log(`Message received from connectionId ${connectionId}: ${message}`);
-
-  // 메시지 처리 및 클라이언트에 응답
-  // 필요하면 다른 클라이언트로 브로드캐스트
-  res.status(200).send({ message: "Message processed" });
-});
 
 // Ensure Cognito is initialized before login API
 app.post("/login", async (req, res) => {
