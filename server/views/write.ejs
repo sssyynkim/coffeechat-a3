@@ -80,10 +80,31 @@
         const progressPercentage =
           document.getElementById("progressPercentage");
         const progressContainer = document.getElementById("progressContainer");
-        let gifBlob = null; // To store the generated GIF blob
+        let gifBlob = null;
         let selectedFile = null;
 
-        // Handle image file selection and upload
+        const webSocket = new WebSocket("ws://localhost:8080");
+
+        webSocket.onopen = function (event) {
+          console.log("WebSocket connected:", event);
+        };
+
+        webSocket.onmessage = function (event) {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "upload-progress") {
+            console.log(`Upload Progress: ${data.progress}%`);
+          } else if (data.type === "upload-complete") {
+            console.log(`Upload Complete! File URL: ${data.url}`);
+          } else if (data.type === "upload-failed") {
+            console.error(`Upload Failed: ${data.error}`);
+          }
+        };
+
+        webSocket.onclose = function (event) {
+          console.log("WebSocket closed:", event);
+        };
+
         fileInput.addEventListener("change", handleFileSelect);
         fileDragArea.addEventListener("dragover", handleDragOver);
         fileDragArea.addEventListener("drop", handleFileDrop);
@@ -95,10 +116,8 @@
             filePreview.src = URL.createObjectURL(file);
             filePreview.style.display = "block";
 
-            // Get pre-signed URL from the server
             const preSignedUrl = await getPreSignedUrl(file.name);
             if (preSignedUrl) {
-              // Upload the file to S3 using the pre-signed URL
               await uploadFileToS3(file, preSignedUrl);
             }
           }
@@ -118,7 +137,6 @@
             filePreview.src = URL.createObjectURL(file);
             filePreview.style.display = "block";
 
-            // Get pre-signed URL from the server and upload the file
             getPreSignedUrl(file.name).then((preSignedUrl) => {
               if (preSignedUrl) {
                 uploadFileToS3(file, preSignedUrl);
@@ -127,7 +145,6 @@
           }
         }
 
-        // GIF creation logic
         const createGifBtn = document.getElementById("createGifBtn");
         createGifBtn.addEventListener("click", () => {
           const gifText = document.getElementById("gifText").value;
@@ -138,7 +155,6 @@
               "https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js",
           });
 
-          // Add text frames to the GIF
           for (let i = 0; i < 10; i++) {
             const context = gifCanvas.getContext("2d");
             context.clearRect(0, 0, gifCanvas.width, gifCanvas.height);
@@ -148,7 +164,6 @@
             gif.addFrame(gifCanvas, { copy: true, delay: 200 });
           }
 
-          // Show progress
           gif.on("progress", (progress) => {
             const percentage = Math.round(progress * 100);
             progressBar.value = percentage;
@@ -158,36 +173,31 @@
           gif.on("finished", async (blob) => {
             console.log("GIF created!");
             gifBlob = blob;
-
-            // Display the generated GIF
             gifPreview.src = URL.createObjectURL(gifBlob);
             gifPreview.style.display = "block";
 
-            // Upload GIF to S3 using a pre-signed URL
             const preSignedUrl = await getPreSignedUrl("generated.gif");
             if (preSignedUrl) {
               await uploadGifToS3(gifBlob, preSignedUrl);
             }
           });
 
-          gif.render(); // Start the GIF creation process
-          progressContainer.style.display = "block"; // Show the progress bar
+          gif.render();
+          progressContainer.style.display = "block";
         });
 
-        // Function to get pre-signed URL from server
         async function getPreSignedUrl(fileName) {
           try {
             const response = await fetch(
               `/posts/presigned-url?fileName=${fileName}`
             );
             const data = await response.json();
-            return data.url; // Assuming the server returns { url: preSignedUrl }
+            return data.url;
           } catch (error) {
             console.error("Error fetching pre-signed URL:", error);
           }
         }
 
-        // Upload file (image or GIF) to S3 using the pre-signed URL
         const uploadFileToS3 = async (file, preSignedUrl) => {
           try {
             const response = await fetch(preSignedUrl, {
@@ -207,7 +217,6 @@
           }
         };
 
-        // Upload GIF to S3 using the pre-signed URL
         const uploadGifToS3 = async (gifBlob, preSignedUrl) => {
           try {
             const response = await fetch(preSignedUrl, {
