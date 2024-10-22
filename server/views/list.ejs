@@ -17,15 +17,22 @@
       </div>
       <% if (posts && posts.length > 0) { %>
       <div class="posts-grid">
-        <% posts.forEach(post => { %>
+        <% posts.forEach(post=> { %>
         <div class="post-card">
           <a href="/posts/detail/<%= post._id %>">
             <h4 class="post-title"><%= post.title %></h4>
           </a>
-          <% if (post.imageUrl) { %>
-          <!-- Display the image using the stored S3 URL -->
+
+          <% if (post.imageUrl) { %> <% if (post.imageUrl.endsWith('.gif')) { %>
+          <img
+            src="<%= post.imageUrl %>"
+            alt="GIF Thumbnail"
+            class="post-gif-thumbnail"
+          />
+          <% } else { %>
           <img src="<%= post.imageUrl %>" alt="Post Image" class="post-image" />
-          <% } %>
+          <% } %> <% } %>
+
           <p class="post-content"><%= post.content %></p>
           <p class="post-meta">
             ✍️ Posted by: <%= post.username %> on <%= new
@@ -33,8 +40,8 @@
           </p>
           <p class="post-meta">💌 Comments: <%= post.commentCount %></p>
 
-          <% if (user && post.user && user.sub && user.sub.toString() ===
-          post.user.toString()) { %>
+          <% if (user && post.user && user.sub &&
+          user.sub.toString()===post.user.toString()) { %>
           <div class="post-actions">
             <a href="/posts/edit/<%= post._id %>" class="btn edit-btn"
               >✏️ Edit</a
