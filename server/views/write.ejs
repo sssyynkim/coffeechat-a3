@@ -85,7 +85,7 @@
 
         // Initialize WebSocket connection to AWS API Gateway WebSocket API
         const webSocket = new WebSocket(
-          "wss://5sfewaqotj.execute-api.ap-southeast-2.amazonaws.com/production/"
+          "wss://obhui0pok8.execute-api.ap-southeast-2.amazonaws.com/production/"
         );
 
         webSocket.onopen = function (event) {
@@ -111,7 +111,7 @@
           // 재연결 로직
           setTimeout(() => {
             webSocket = new WebSocket(
-              "wss://5sfewaqotj.execute-api.ap-southeast-2.amazonaws.com/production/"
+              "wss://obhui0pok8.execute-api.ap-southeast-2.amazonaws.com/production/"
             );
           }, 5000); // 5초 후에 재연결 시도
         };
