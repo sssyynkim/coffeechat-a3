@@ -18,6 +18,28 @@ const { getParameterValue } = require("../config/secretsManager");
 const { createDynamoDBClient } = require("../controllers/dynamoController");
 const { PutCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
+const AWS = require("@aws-sdk/client-sqs"); // AWS SDK for SQS
+const { createSQSClient } = require("../server");
+
+async function sendMessageToSQS(messageBody) {
+  try {
+    const sqsClient = await createSQSClient();
+    const queueUrl =
+      "https://sqs.ap-southeast-2.amazonaws.com/901444280953/n11682957-coffeechat-queue"; // 본인 SQS 큐 URL 사용
+
+    const params = {
+      QueueUrl: queueUrl,
+      MessageBody: JSON.stringify(messageBody), // 메시지를 JSON 형식으로 변환
+    };
+
+    const command = new AWS.SendMessageCommand(params);
+    const response = await sqsClient.send(command);
+
+    console.log("SQS Message Sent", response.MessageId);
+  } catch (error) {
+    console.error("Error sending message to SQS:", error);
+  }
+}
 
 // Route to render the write post page
 router.get("/write", ensureAuthenticated, (req, res) => {
@@ -93,6 +115,16 @@ router.post(
           Item: dynamoPostData,
         })
       );
+
+      // SQS로 메시지 전송
+      const messageBody = {
+        postId: postId,
+        title: req.body.title,
+        content: req.body.content,
+        imageUrl: postData.imageUrl,
+        userId: userId,
+      };
+      await sendMessageToSQS(messageBody); // SQS에 메시지 전송
 
       res.redirect("/posts/list");
     } catch (err) {

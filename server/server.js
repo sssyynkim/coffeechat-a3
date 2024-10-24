@@ -1,3 +1,4 @@
+const { SQSClient } = require("@aws-sdk/client-sqs");
 const AWS = require("aws-sdk");
 const express = require("express");
 const path = require("path");
@@ -22,6 +23,14 @@ const { v4: uuidv4 } = require("uuid");
 const {
   CognitoIdentityProviderClient,
 } = require("@aws-sdk/client-cognito-identity-provider");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+// 필요한 SQS 명령어 추가
+const {
+  SendMessageCommand,
+  ReceiveMessageCommand,
+  DeleteMessageCommand,
+} = require("@aws-sdk/client-sqs");
 
 const app = express();
 const server = http.createServer(app);
@@ -200,6 +209,92 @@ async function createDynamoDBClient() {
   return DynamoDBDocumentClient.from(client);
 }
 
+// SQS Client setup
+async function createSQSClient() {
+  return new SQSClient({
+    region: await getParameterValue("/n11725605/prac-region"),
+    credentials: {
+      accessKeyId: await getParameterValue("/n11725605/prac-accessKeyId"),
+      secretAccessKey: await getParameterValue(
+        "/n11725605/prac-secretAccessKey"
+      ),
+      sessionToken: await getParameterValue("/n11725605/prac-sessionToken"),
+    },
+  });
+}
+
+// SQS로 메시지 전송
+// SQS로 메시지 전송
+async function sendMessageToSQS(messageBody) {
+  try {
+    const sqsClient = await createSQSClient();
+    const queueUrl =
+      "https://sqs.ap-southeast-2.amazonaws.com/901444280953/n11682957-coffeechat-queue"; // SQS Queue URL
+
+    const params = {
+      QueueUrl: queueUrl,
+      MessageBody: JSON.stringify(messageBody), // 메시지를 JSON으로 변환
+    };
+
+    const command = new SendMessageCommand(params);
+    const response = await sqsClient.send(command);
+
+    console.log("SQS Message Sent", response.MessageId);
+
+    // WebSocket 클라이언트에게 실시간 알림 전송
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ action: "newPost", data: messageBody }));
+      }
+    });
+  } catch (error) {
+    console.error("Error sending message to SQS:", error);
+  }
+}
+
+// 메시지 처리 로직
+// 메시지 처리 로직
+async function processSQSMessages() {
+  try {
+    const sqsClient = await createSQSClient();
+    const receiveCommand = new ReceiveMessageCommand({
+      QueueUrl:
+        "https://sqs.ap-southeast-2.amazonaws.com/901444280953/n11682957-coffeechat-queue",
+      MaxNumberOfMessages: 1,
+      WaitTimeSeconds: 20,
+    });
+
+    const receiveResponse = await sqsClient.send(receiveCommand);
+    const messages = receiveResponse.Messages;
+
+    if (!messages || messages.length === 0) {
+      console.log("No messages in the queue.");
+      return;
+    }
+
+    const message = messages[0];
+    console.log("Processing message:", message.Body);
+
+    // WebSocket을 통해 실시간 알림 전송
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(`New post notification: ${message.Body}`);
+      }
+    });
+
+    // 메시지 삭제
+    const deleteCommand = new DeleteMessageCommand({
+      QueueUrl:
+        "https://sqs.ap-southeast-2.amazonaws.com/901444280953/n11682957-coffeechat-queue",
+      ReceiptHandle: message.ReceiptHandle,
+    });
+    const deleteResponse = await sqsClient.send(deleteCommand);
+    console.log("Message deleted:", deleteResponse);
+  } catch (error) {
+    console.error("Error processing SQS message:", error);
+  }
+}
+
 // IIFE to handle async initialization and start the server
 (async function startServer() {
   try {
@@ -352,6 +447,17 @@ async function createDynamoDBClient() {
               Item: postData,
             })
           );
+
+          const messageBody = {
+            postId: postId,
+            title: req.body.title,
+            content: req.body.content,
+            imageUrl: fileUrl,
+            userId: userId,
+          };
+
+          await sendMessageToSQS(messageBody); // SQS로 메시지 전송
+
           res
             .status(201)
             .send({ message: "Post created successfully", postId });
@@ -362,7 +468,6 @@ async function createDynamoDBClient() {
       }
     );
 
-    // server.js에서 presigned-url 라우트 추가
     app.get("/posts/presigned-url", async (req, res) => {
       const fileName = req.query.fileName; // 요청된 파일 이름
       const s3Client = await createS3Client(); // S3 클라이언트 생성
@@ -375,8 +480,10 @@ async function createDynamoDBClient() {
       };
 
       try {
-        const command = new AWS.S3.GetObjectCommand(params);
-        const preSignedUrl = await s3Client.getSignedUrl(command);
+        const command = new GetObjectCommand(params);
+        const preSignedUrl = await getSignedUrl(s3Client, command, {
+          expiresIn: 60,
+        });
         res.json({ url: preSignedUrl });
       } catch (err) {
         console.error("Error generating pre-signed URL:", err);
@@ -397,3 +504,5 @@ async function createDynamoDBClient() {
     process.exit(1);
   }
 })();
+
+module.exports = { createSQSClient };
